@@ -2,8 +2,10 @@ package application;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -17,7 +19,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-	Point2D gridWorldSize = new Point2D(840d, 840d);
+	Point2D gridWorldSize = new Point2D(200, 200);
 	public int gridSizeX;
 	public int gridSizeY;
 	
@@ -46,7 +48,7 @@ public class Main extends Application {
 		
 		grid.setOnKeyPressed(
 				event -> {
-					if (event.getCode() == KeyCode.K && !running) {
+					if (event.getCode() == KeyCode.SPACE && !running) {
 						System.out.println("Running");
 						FindPath();
 						running = true;
@@ -69,7 +71,7 @@ public class Main extends Application {
 			for (int j = 0; j < gridSizeY; j++) {
 				
 				final ASNode node = new ASNode(true, i, j);
-				node.setStyle(getStyle(Color.WHITE));
+				node.setStyle(getStyle(Color.BEIGE));
 				
 				node.setOnMouseDragEntered(
 						event -> {
@@ -88,7 +90,7 @@ public class Main extends Application {
 								
 							} else {
 								event.consume();
-								node.setStyle(getStyle(Color.WHITE));
+								node.setStyle(getStyle(Color.BEIGE));
 								if (node == startNode) {
 									this.startNode = null;
 								} else if (node == targetNode) {
@@ -124,23 +126,26 @@ public class Main extends Application {
 
 	private void FindPath() {
 		
-		List<ASNode> openSet = new ArrayList<ASNode>();
+		PriorityQueue<ASNode> openSet = new PriorityQueue<ASNode>(new Comparator<ASNode>() {
+
+			@Override
+			public int compare(ASNode o1, ASNode o2) {
+				int compare = Integer.compare(o1.getfCost(), o2.getfCost());
+				if (compare == 0) {
+					compare = Integer.compare(o1.hCost, o2.hCost);
+				}
+				System.out.println(-compare);
+				return -compare;
+			}
+		});
 		HashSet<ASNode> closedSet = new HashSet<ASNode>();
 		
 		openSet.add(startNode);
 		
 		while (!openSet.isEmpty()) {
 			
-			ASNode currentNode = openSet.get(0);
+			ASNode currentNode = openSet.remove();
 			
-			for (int i = 1; i < openSet.size(); i++) {
-				if (openSet.get(i).getfCost() < currentNode.getfCost() || 
-						openSet.get(i).getfCost() == currentNode.getfCost() && openSet.get(i).hCost == currentNode.hCost) {
-					currentNode = openSet.get(i);
-				}
-			}
-			
-			openSet.remove(currentNode);
 			closedSet.add(currentNode);
 			
 			if (currentNode == targetNode) {
