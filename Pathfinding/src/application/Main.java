@@ -2,10 +2,8 @@ package application;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.PriorityQueue;
 
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -126,25 +124,14 @@ public class Main extends Application {
 
 	private void FindPath() {
 		
-		PriorityQueue<ASNode> openSet = new PriorityQueue<ASNode>(new Comparator<ASNode>() {
-
-			@Override
-			public int compare(ASNode o1, ASNode o2) {
-				int compare = Integer.compare(o1.getfCost(), o2.getfCost());
-				if (compare == 0) {
-					compare = Integer.compare(o1.hCost, o2.hCost);
-				}
-				System.out.println(-compare);
-				return -compare;
-			}
-		});
+		Heap<ASNode> openSet = new Heap<ASNode>(gridSizeX * gridSizeY);
 		HashSet<ASNode> closedSet = new HashSet<ASNode>();
 		
-		openSet.add(startNode);
+		openSet.Add(startNode);
 		
 		while (!openSet.isEmpty()) {
 			
-			ASNode currentNode = openSet.remove();
+			ASNode currentNode = openSet.RemoveFirst();
 			
 			closedSet.add(currentNode);
 			
@@ -161,15 +148,15 @@ public class Main extends Application {
 				
 				int newMovementCost = currentNode.gCost + GetDistance(currentNode, neighbour);
 				
-				if (newMovementCost < neighbour.gCost || !openSet.contains(neighbour)) {
+				if (newMovementCost < neighbour.gCost || !openSet.Contains(neighbour)) {
 					
 					neighbour.gCost = newMovementCost;
 					neighbour.hCost = GetDistance(neighbour, targetNode);
 					
 					neighbour.parent = currentNode;
 					
-					if (!openSet.contains(neighbour)) {
-						openSet.add(neighbour);
+					if (!openSet.Contains(neighbour)) {
+						openSet.Add(neighbour);
 					}
 					
 				}
