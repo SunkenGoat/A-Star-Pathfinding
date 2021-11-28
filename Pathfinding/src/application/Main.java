@@ -138,6 +138,7 @@ public class Main extends Application {
 			if (currentNode == targetNode) {
 				BacktrackPath();
 				System.out.println("Target node has been found");
+				return;
 			}
 			
 			for (ASNode neighbour : getNeighbours(currentNode)) {

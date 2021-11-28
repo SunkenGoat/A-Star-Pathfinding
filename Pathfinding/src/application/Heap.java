@@ -1,32 +1,36 @@
 package application;
 
-import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Heap<T extends IHeapItem<T>> {
 	
-	T[] items;
+	List<T> items;
 	int currentItemCount;
 	
-	@SuppressWarnings("unchecked")
 	public Heap(int maxHeapSize) {
-		items = (T[]) Array.newInstance(getClass(), maxHeapSize);
+		items = new ArrayList<T>(maxHeapSize);
+		for (int i = 0; i < maxHeapSize; i++) {
+			items.add(null);
+		}
+		System.out.println(items);
 
 //		items = (T[]) new Object[maxHeapSize];
 	}
 	
 	public void Add(T item) {
 		item.setIndex(currentItemCount);
-		items[currentItemCount] = item;
+		items.set(currentItemCount, item);
 		SortUp(item);
 		currentItemCount++;
 	}
 
 	public T RemoveFirst() {
-		T firstItem = items[0];
+		T firstItem = items.get(0);
 		currentItemCount--;
-		items[0] = items[currentItemCount];
-		items[0].setIndex(0);;
-		SortDown(items[0]);
+		items.set(0, items.get(currentItemCount));
+		items.get(0).setIndex(0);;
+		SortDown(items.get(0));
 		return firstItem;
 	}
 
@@ -39,7 +43,7 @@ public class Heap<T extends IHeapItem<T>> {
 	}
 
 	public boolean Contains(T item) {
-		return items[item.getIndex()].equals(item);
+		return items.get(item.getIndex()).equals(item);
 	}
 
 	void SortDown(T item) {
@@ -52,13 +56,13 @@ public class Heap<T extends IHeapItem<T>> {
 				swapIndex = childIndexLeft;
 
 				if (childIndexRight < currentItemCount) {
-					if (items[childIndexLeft].compareTo(items[childIndexRight]) < 0) {
+					if (items.get(childIndexLeft).compareTo(items.get(childIndexRight)) < 0) {
 						swapIndex = childIndexRight;
 					}
 				}
 
-				if (item.compareTo(items[swapIndex]) < 0) {
-					Swap (item,items[swapIndex]);
+				if (item.compareTo(items.get(swapIndex)) < 0) {
+					Swap (item,items.get(swapIndex));
 				}
 				else {
 					return;
@@ -76,7 +80,7 @@ public class Heap<T extends IHeapItem<T>> {
 		int parentIndex = (item.getIndex()-1)/2;
 		
 		while (true) {
-			T parentItem = items[parentIndex];
+			T parentItem = items.get(parentIndex);
 			if (item.compareTo(parentItem) > 0) {
 				Swap (item,parentItem);
 			}
@@ -89,15 +93,15 @@ public class Heap<T extends IHeapItem<T>> {
 	}
 	
 	void Swap(T itemA, T itemB) {
-		items[itemA.getIndex()] = itemB;
-		items[itemB.getIndex()] = itemA;
+		items.set(itemA.getIndex(), itemB);
+		items.set(itemB.getIndex(), itemA);
 		int itemAIndex = itemA.getIndex();
 		itemA.setIndex(itemB.getIndex());
 		itemB.setIndex(itemAIndex);
 	}
 
 	public boolean isEmpty() {
-		if (items.length == 0) {
+		if (items.size() == 0) {
 			return true;
 		}
 		return false;
