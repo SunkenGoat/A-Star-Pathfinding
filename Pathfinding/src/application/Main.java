@@ -1,13 +1,8 @@
 package application;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.awt.Point;
 
 import javafx.application.Application;
-import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -17,38 +12,25 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-	Point2D gridWorldSize = new Point2D(200, 200);
-	public int gridSizeX;
-	public int gridSizeY;
-	
+	Point gridWorldSize = new Point(840, 840);
 	public float nodeRadius = 10f;
 	
-	public Node[][] gridArray = null;
 	public GridPane grid = new GridPane();
 	
 	public ASNode startNode;
 	public ASNode targetNode;
-	public boolean running = false;
+	private boolean running = false;
+	
+	Pathfinding pf = new Pathfinding(this.gridWorldSize, this.nodeRadius);
 	
 	@Override
 	public void start(Stage primaryStage) {
 		
-		float nodeDiameter = nodeRadius * 2;
-		
-		gridSizeX = (int) Math.round(gridWorldSize.getX() / nodeDiameter);
-		gridSizeY = (int) Math.round(gridWorldSize.getY() / nodeDiameter);
-
-		System.out.println(gridSizeX + gridSizeY);
-		
-		this.gridArray = new ASNode[gridSizeX][gridSizeY];
-
-		
-		
 		grid.setOnKeyPressed(
 				event -> {
-					if (event.getCode() == KeyCode.SPACE && !running) {
+					if (event.getCode() == KeyCode.SPACE && !running && this.startNode != null && this.targetNode != null) {
 						System.out.println("Running");
-						FindPath();
+						pf.FindPath(startNode, targetNode);
 						running = true;
 						event.consume();
 					}
@@ -65,30 +47,30 @@ public class Main extends Application {
 					}
 				});
 
-		for (int i = 0; i < gridSizeX; i++) {
-			for (int j = 0; j < gridSizeY; j++) {
+		for (int i = 0; i < pf.getGridSizeX(); i++) {
+			for (int j = 0; j < pf.getGridSizeY(); j++) {
 				
 				final ASNode node = new ASNode(true, i, j);
-				node.setStyle(getStyle(Color.BEIGE));
+				node.setNodeStyle(Color.BEIGE);
 				
 				node.setOnMouseDragEntered(
 						event -> {
 							if (event.getButton() == MouseButton.PRIMARY) {
 								event.consume();
 								if (startNode == null && node != targetNode) {
-									node.setStyle(getStyle(Color.ORANGE));
+									node.setNodeStyle(Color.ORANGE);
 									this.startNode = node;
 								} else if (targetNode == null && node != startNode) {
-									node.setStyle(getStyle(Color.BLUEVIOLET));
+									node.setNodeStyle(Color.BLUEVIOLET);
 									this.targetNode = node;
 								} else if (node != startNode && node != targetNode) {
-									node.setStyle(getStyle(Color.RED));
+									node.setNodeStyle(Color.RED);
 									node.walkable = false;
 								}
 								
-							} else {
+							} else if (event.getButton() == MouseButton.SECONDARY){
 								event.consume();
-								node.setStyle(getStyle(Color.BEIGE));
+								node.setNodeStyle(Color.BEIGE);
 								if (node == startNode) {
 									this.startNode = null;
 								} else if (node == targetNode) {
@@ -99,7 +81,7 @@ public class Main extends Application {
 							
 						});
 				
-				this.gridArray[i][j] = node;
+				pf.setGridNode(i, j, node);
 				grid.add(node, i, j);
 			}
 		}
@@ -122,119 +104,19 @@ public class Main extends Application {
 
 	}
 
-	private void FindPath() {
-		
-		Heap<ASNode> openSet = new Heap<ASNode>(gridSizeX * gridSizeY);
-		HashSet<ASNode> closedSet = new HashSet<ASNode>();
-		
-		openSet.Add(startNode);
-		
-		while (!openSet.isEmpty()) {
-			
-			ASNode currentNode = openSet.RemoveFirst();
-			
-			closedSet.add(currentNode);
-			
-			if (currentNode == targetNode) {
-				BacktrackPath();
-				System.out.println("Target node has been found");
-				return;
-			}
-			
-			for (ASNode neighbour : getNeighbours(currentNode)) {
-				
-				if (!neighbour.walkable && closedSet.contains(currentNode)) {
-					continue;
-				}
-				
-				int newMovementCost = currentNode.gCost + GetDistance(currentNode, neighbour);
-				
-				if (newMovementCost < neighbour.gCost || !openSet.Contains(neighbour)) {
-					
-					neighbour.gCost = newMovementCost;
-					neighbour.hCost = GetDistance(neighbour, targetNode);
-					
-					neighbour.parent = currentNode;
-					
-					if (!openSet.Contains(neighbour)) {
-						openSet.Add(neighbour);
-					}
-					
-				}
-				
-			}
-			
-		}
-		
-	}
-
-	private void BacktrackPath() {
-		
-		List<ASNode> path = new ArrayList<ASNode>();
-		
-		ASNode currentNode = targetNode;
-		
-		while (currentNode != startNode) {
-			path.add(currentNode);
-			currentNode = currentNode.parent;
-		}
-		
-		Collections.reverse(path);
-		
-		for (ASNode n : path) {
-			n.setStyle(getStyle(Color.AQUA));
-		}
-		
-	}
-
-	private int GetDistance(ASNode nodeA, ASNode nodeB) {
-		
-		int distX = Math.abs(nodeA.gridX - nodeB.gridX);
-		int distY = Math.abs(nodeA.gridY - nodeB.gridY);
-		
-		if (distX > distY) {
-			return 14*distY + 10 * (distX - distY);
-		}
-		
-		return 14*distX + 10 * (distY - distX);
-		
-	}
-
-	private List<ASNode> getNeighbours(ASNode node) {
-		
-		List<ASNode> neighbours = new ArrayList<ASNode>();
-		
-		for (int i = -1; i <= 1; i++) {
-			for (int j = -1; j <= 1; j++) {
-				if (i == 0 && j == 0) {
-					continue;
-				}
-				
-				int checkX = node.gridX + i;
-				int checkY = node.gridY + j;
-				
-				if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeX) {
-					neighbours.add((ASNode) gridArray[checkX][checkY]);
-				}
-				
-			}
-		}
-		return neighbours;
-		
-	}
-
 	public static void main(String[] args) {
 		launch(args);
 	}
 
-	private String getStyle(Color color) {
-		
-		String colorString = color.toString();
-		colorString = colorString.replace("0x", "#");
-		String style = "-fx-background-color: " + colorString + "; -fx-border-style: solid; -fx-border-width: 1;"
-					+ " -fx-border-color: black; -fx-min-width: 20; -fx-min-height:20; -fx-max-width:20;"
-					+ " -fx-max-height: 20;";
 
-		return style;
+	public boolean isRunning() {
+		return running;
 	}
+
+
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+	
+	
 }

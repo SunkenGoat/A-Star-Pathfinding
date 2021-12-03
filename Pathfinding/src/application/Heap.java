@@ -1,111 +1,137 @@
 package application;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.PriorityQueue;
 
-public class Heap<T extends IHeapItem<T>> {
+public class Heap<T extends Comparable<T>> extends PriorityQueue<T> {
 	
-	List<T> items;
-	int currentItemCount;
-	
-	public Heap(int maxHeapSize) {
-		items = new ArrayList<T>(maxHeapSize);
-		for (int i = 0; i < maxHeapSize; i++) {
-			items.add(null);
-		}
-		System.out.println(items);
+	private static final long serialVersionUID = 1L;
+	private static final int DEFAULT_CAPACITY = 10;
+    protected T[] array;
+    protected int size;
+    
+    @SuppressWarnings("unchecked")
+	public Heap () {
+        array = (T[]) new Comparable[DEFAULT_CAPACITY];  
+        size = 0;
+    }
+    
+    public boolean add(T value) {
+        // grow array if needed
+        if (size >= array.length - 1) {
+            array = this.resize();
+        }        
+        // place element into heap at bottom
+        size++;
+        int index = size;
+        array[index] = value;
+        
+        bubbleUp();
+        return true;
+    }
+    
+    public boolean isEmpty() {
+        return size == 0;
+    }
 
-//		items = (T[]) new Object[maxHeapSize];
-	}
-	
-	public void Add(T item) {
-		item.setIndex(currentItemCount);
-		items.set(currentItemCount, item);
-		SortUp(item);
-		currentItemCount++;
-	}
+    public T peek() {
+        if (this.isEmpty()) {
+            throw new IllegalStateException();
+        }
+        return array[1];
+    }
 
-	public T RemoveFirst() {
-		T firstItem = items.get(0);
-		currentItemCount--;
-		items.set(0, items.get(currentItemCount));
-		items.get(0).setIndex(0);;
-		SortDown(items.get(0));
-		return firstItem;
-	}
+    public T remove() {
+    	T result = peek();
+    	
+    	array[1] = array[size];
+    	array[size] = null;
+    	size--;
+    	
+    	bubbleDown(); 	
+    	return result;
+    }
+    
+    public String toString() {
+        return Arrays.toString(array);
+    }
 
-	public void UpdateItem(T item) {
-		SortUp(item);
-	}
-
-	public int getCount() {
-		return currentItemCount;
-	}
-
-	public boolean Contains(T item) {
-		return items.get(item.getIndex()).equals(item);
-	}
-
-	void SortDown(T item) {
-		while (true) {
-			int childIndexLeft = item.getIndex() * 2 + 1;
-			int childIndexRight = item.getIndex() * 2 + 2;
-			int swapIndex = 0;
-
-			if (childIndexLeft < currentItemCount) {
-				swapIndex = childIndexLeft;
-
-				if (childIndexRight < currentItemCount) {
-					if (items.get(childIndexLeft).compareTo(items.get(childIndexRight)) < 0) {
-						swapIndex = childIndexRight;
-					}
-				}
-
-				if (item.compareTo(items.get(swapIndex)) < 0) {
-					Swap (item,items.get(swapIndex));
-				}
-				else {
-					return;
-				}
-
-			}
-			else {
-				return;
-			}
-
-		}
-	}
-	
-	void SortUp(T item) {
-		int parentIndex = (item.getIndex()-1)/2;
-		
-		while (true) {
-			T parentItem = items.get(parentIndex);
-			if (item.compareTo(parentItem) > 0) {
-				Swap (item,parentItem);
-			}
-			else {
-				break;
-			}
-
-			parentIndex = (item.getIndex()-1)/2;
-		}
-	}
-	
-	void Swap(T itemA, T itemB) {
-		items.set(itemA.getIndex(), itemB);
-		items.set(itemB.getIndex(), itemA);
-		int itemAIndex = itemA.getIndex();
-		itemA.setIndex(itemB.getIndex());
-		itemB.setIndex(itemAIndex);
-	}
-
-	public boolean isEmpty() {
-		if (items.size() == 0) {
-			return true;
-		}
-		return false;
-	}
-
+    protected void bubbleDown() {
+        int index = 1;
+        
+        while (hasLeftChild(index)) {
+            int smallerChild = leftIndex(index);
+            
+            if (hasRightChild(index)
+                && array[leftIndex(index)].compareTo(array[rightIndex(index)]) > 0) {
+                smallerChild = rightIndex(index);
+            } 
+            
+            if (array[index].compareTo(array[smallerChild]) > 0) {
+                swap(index, smallerChild);
+            } else {
+                break;
+            }
+            
+            index = smallerChild;
+        }        
+    }
+    
+    protected void bubbleUp() {
+        int index = this.size;
+        
+        while (hasParent(index)
+                && (parent(index).compareTo(array[index]) > 0)) {
+            swap(index, parentIndex(index));
+            index = parentIndex(index);
+        }        
+    }
+    
+    
+    protected boolean hasParent(int i) {
+        return i > 1;
+    }
+    
+    
+    protected int leftIndex(int i) {
+        return i * 2;
+    }
+    
+    
+    protected int rightIndex(int i) {
+        return i * 2 + 1;
+    }
+    
+    
+    protected boolean hasLeftChild(int i) {
+        return leftIndex(i) <= size;
+    }
+    
+    
+    protected boolean hasRightChild(int i) {
+        return rightIndex(i) <= size;
+    }
+    
+    
+    protected T parent(int i) {
+        return array[parentIndex(i)];
+    }
+    
+    
+    protected int parentIndex(int i) {
+        return i / 2;
+    }
+    
+    
+    protected T[] resize() {
+        return Arrays.copyOf(array, array.length * 2);
+    }
+    
+    
+    protected void swap(int index1, int index2) {
+        T tmp = array[index1];
+        array[index1] = array[index2];
+        array[index2] = tmp;        
+    }
 }
 
