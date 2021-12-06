@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
@@ -81,33 +82,24 @@ public class Pathfinding {
 			
 		}
 	
-	public List<ASNode> getNeighbours(ASNode node) {
-			
-			List<ASNode> neighbours = new ArrayList<ASNode>();
-			
-			for (int i = -1; i <= 1; i++) {
-				for (int j = -1; j <= 1; j++) {
-					if (i == 0 && j == 0) {
-						continue;
-					}
-					
-					int checkX = node.getGridX() + i;
-					int checkY = node.getGridY() + j;
-					
-					if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeX) {
-						ASNode n = (ASNode) gridArray[checkX][checkY];
-						if (n.walkable) {
-							n.setNodeStyle(Color.PURPLE);
-							neighbours.add(n);
-						}
-						
-					}
-					
+	public Set<ASNode> getNeighbours(ASNode node){
+		Set<ASNode> neighbours = new HashSet<ASNode>();
+		for(int i=-1; i<=1; i++){
+			for(int j=-1; j<=1; j++){
+				
+				if(i==0 && j==0) continue;
+				
+				int checkX = node.getGridX() + i;
+				int checkY = node.getGridY() + j;
+				if(checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeX){
+					ASNode n = (ASNode) gridArray[checkX][checkY];
+					if (n.walkable) neighbours.add(n);
 				}
+					
 			}
-			return neighbours;
-			
 		}
+		return neighbours;
+	}
 	
 	public List<ASNode> BacktrackPath(ASNode startNode, ASNode targetNode) {
 			
