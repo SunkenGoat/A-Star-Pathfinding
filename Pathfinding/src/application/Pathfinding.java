@@ -35,50 +35,46 @@ public class Pathfinding {
 			Heap<ASNode> openSet = new Heap<ASNode>();
 			HashSet<ASNode> closedSet = new HashSet<ASNode>();
 			
+			startNode.setOpen();
 			openSet.add(startNode);
 			
-			while (!openSet.isEmpty()) {
-				
-				ASNode currentNode = openSet.remove();
-				System.out.println("X:" + currentNode.getGridX() + ", Y: " + currentNode.getGridY());
-				
-				closedSet.add(currentNode);
-				
-				if (currentNode == targetNode) {
-					System.out.println("Target node has been found at " + targetNode.getGridX() + "," + targetNode.getGridY());
-//					Main.setRunning(false);
-					BacktrackPath(startNode, targetNode);
-					
+			startNode.setgCost(0);
+			startNode.sethCost(GetDistance(startNode, targetNode));
+			
+			while(!openSet.isEmpty()){
+				ASNode current = openSet.remove();
+				if(current.equals(targetNode)){
+					List<ASNode> path = BacktrackPath(targetNode);
+					System.out.println("Path found from " + startNode.getGridX() + ", " + startNode.getGridY() +
+							" to " + targetNode.getGridX() + ", " + targetNode.getGridY());
+					System.out.println("In " + path.size() + " steps");
 					return;
 				}
 				
-				for (ASNode neighbour : getNeighbours(currentNode)) {
-					
-					if (!neighbour.walkable && closedSet.contains(currentNode)) {
-						continue;
-					}
-					
-					double newMovementCost = currentNode.getgCost()+ GetDistance(currentNode, neighbour);
-					
-					if (newMovementCost < neighbour.getgCost() || !openSet.contains(neighbour)) {
-						
-						neighbour.setgCost(newMovementCost);
-						neighbour.sethCost(GetDistance(neighbour, targetNode));;
-						// This does not create a path from the startNode to targetNode and instead creates an infinite loop by
-						// assigning one node's parent to itself and vice versa. When running Backtracking() this causes the program
-						// to crash.
-						neighbour.setNodeParent(currentNode);;
-						
-						
-						if (!openSet.contains(neighbour)) {
-							openSet.add(neighbour);
-						}
-						
-					}
-					
-				}
+				current.setClosed();
+				closedSet.add(current);
 				
+				Set<ASNode> neighbours = getNeighbours(current);
+				for(ASNode neighbour : neighbours){
+					if(!neighbour.isClosed()){
+						double tentativeCost = current.getgCost() + GetDistance(current, neighbour);
+						
+						if( (!neighbour.isOpen()) || (tentativeCost < neighbour.getgCost()) ){
+							
+							neighbour.setNodeParent(current);
+							
+							neighbour.setgCost(tentativeCost);
+							neighbour.sethCost(GetDistance(neighbour, startNode));
+							if(!neighbour.isOpen())
+								neighbour.setOpen();
+								openSet.add(neighbour);
+							}
+					}
+						
+				}
 			}
+			
+			return;
 			
 		}
 	
@@ -101,32 +97,28 @@ public class Pathfinding {
 		return neighbours;
 	}
 	
-	public List<ASNode> BacktrackPath(ASNode startNode, ASNode targetNode) {
+	public List<ASNode> BacktrackPath(ASNode targetNode) {
 			
-			ASNode currentNode = targetNode;
-			
-			List<ASNode> path = new ArrayList<ASNode>();
-			
-			while (true) {
-				System.out.println("X:" + currentNode.getGridX() + ", Y: " + currentNode.getGridY());
-				if (currentNode.equals(startNode)) {
-					System.out.println("Holo");
-					break;
-				}
-				currentNode.setNodeStyle(Color.AQUA);
-				path.add(currentNode);
-				currentNode = currentNode.getNodeParent();
-			}
-			
-			Collections.reverse(path);
-			
-			return path;
-			
+		ArrayList<ASNode> path = new ArrayList<ASNode>();
+		ASNode current = targetNode;
+		
+		while(current.getNodeParent() != null){
+			current.setNodeStyle(Color.TURQUOISE);
+			path.add(current.getNodeParent());
+			current = current.getNodeParent();
+		}
+		Collections.reverse(path);
+		
+		for (ASNode node : path) {
+			node.setNodeStyle(Color.BLACK);
+		}
+		
+		return path;
 		}
 	
-	private double GetDistance(ASNode nodeA, ASNode nodeB) {
+	private double GetDistance(ASNode from, ASNode to) {
 		
-		return Math.pow(10 *Math.pow(nodeA.getGridX()-nodeB.getGridX(), 2) + 10 * Math.pow(nodeA.getGridY() - nodeB.getGridY(), 2) , 0.5);
+		return Math.pow(Math.pow(from.getGridX()-to.getGridX(), 2) + Math.pow(from.getGridY() - to.getGridY(), 2) , 0.5);
 		
 	}
 	

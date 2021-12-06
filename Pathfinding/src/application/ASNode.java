@@ -7,6 +7,10 @@ import java.awt.Point;
 
 public class ASNode extends Region implements Comparable<ASNode> {
 	
+	private enum State {
+		OPEN, CLOSED
+	}
+	
 	private double gCost;
 	private double hCost;
 	
@@ -16,7 +20,8 @@ public class ASNode extends Region implements Comparable<ASNode> {
 	private ASNode parent;
 	
 	public boolean walkable;
-	int heapIndex;
+	
+	private State state;
 	
 	public ASNode( boolean walkable, int gridX, int gridY) {
 		super();
@@ -38,7 +43,7 @@ public class ASNode extends Region implements Comparable<ASNode> {
 		if (compare == 0) {
 			compare = Double.compare(hCost, node.hCost);
 		}
-		return -compare;
+		return compare;
 	}
 	
 	@Override
@@ -106,6 +111,24 @@ public class ASNode extends Region implements Comparable<ASNode> {
 
 	public void setNodeParent(ASNode parent) {
 		this.parent = parent;
+	}
+	
+	public boolean isOpen() {
+		if (this.state == State.OPEN) return true;
+		return false;
+	}
+	
+	public boolean isClosed() {
+		if (this.state == State.CLOSED) return true;
+		return false;
+	}
+
+	public void setOpen() {
+		this.state = State.OPEN;
+	}
+	
+	public void setClosed() {
+		this.state = State.CLOSED;
 	}
 	
 	
