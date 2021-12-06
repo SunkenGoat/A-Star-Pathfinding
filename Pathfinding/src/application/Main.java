@@ -28,7 +28,6 @@ public class Main extends Application {
 		grid.setOnKeyPressed(
 				event -> {
 					if (event.getCode() == KeyCode.SPACE && this.startNode != null && this.targetNode != null) {
-						System.out.println("Running");
 						pf.FindPath(startNode, targetNode);
 						event.consume();
 					}
