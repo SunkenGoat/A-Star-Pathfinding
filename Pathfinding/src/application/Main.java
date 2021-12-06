@@ -11,6 +11,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+	
+	private enum State {
+		RUNNING, NOTRUNNING
+	}
 
 	Point gridWorldSize = new Point(840, 840);
 	public float nodeRadius = 10f;
@@ -19,19 +23,19 @@ public class Main extends Application {
 	
 	public ASNode startNode;
 	public ASNode targetNode;
-	private boolean running = false;
 	
 	Pathfinding pf = new Pathfinding(this.gridWorldSize, this.nodeRadius);
+	private State state;
 	
 	@Override
 	public void start(Stage primaryStage) {
 		
 		grid.setOnKeyPressed(
 				event -> {
-					if (event.getCode() == KeyCode.SPACE && !running && this.startNode != null && this.targetNode != null) {
+					if (event.getCode() == KeyCode.SPACE && state == State.NOTRUNNING && this.startNode != null && this.targetNode != null) {
 						System.out.println("Running");
 						pf.FindPath(startNode, targetNode);
-						running = true;
+						this.state = State.RUNNING;
 						event.consume();
 					}
 				});
@@ -106,16 +110,6 @@ public class Main extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
-	}
-
-
-	public boolean isRunning() {
-		return running;
-	}
-
-
-	public void setRunning(boolean running) {
-		this.running = running;
 	}
 	
 	
