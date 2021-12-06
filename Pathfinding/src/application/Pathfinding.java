@@ -126,15 +126,6 @@ public class Pathfinding {
 	
 	private double GetDistance(ASNode nodeA, ASNode nodeB) {
 		
-//		int distX = Math.abs(nodeA.gridX - nodeB.gridX);
-//		int distY = Math.abs(nodeA.gridY - nodeB.gridY);
-//		
-//		if (distX > distY) {
-//			return (14*distY) + 10*(distX - distY);
-//		}
-//		
-//		return (14*distX) + 10*(distY - distX);
-//		
 		return Math.pow(10 *Math.pow(nodeA.getGridX()-nodeB.getGridX(), 2) + 10 * Math.pow(nodeA.getGridY() - nodeB.getGridY(), 2) , 0.5);
 		
 	}
